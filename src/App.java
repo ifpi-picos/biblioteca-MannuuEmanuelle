@@ -10,25 +10,29 @@ public class App {
 
         System.out.println("--- BIBLIOTECA ---");
 
-        while(true) {
-            System.out.println("1 - Adicionar Livro ");
-            System.out.println("2 - Remover Livro ");
-            System.out.println("3 - Listar Livros ");
-            System.out.println("4 - Sair ");
-
+        OUTER:
+        while (true) {
+            System.out.println("1 - Cadastrar Livro ");
+            System.out.println("2 - Devolver livro ");
+            System.out.println("3 - Listar todos os livros ");
+            System.out.println("4 - Listar livros emprestados ");
+            System.out.println("5 - Listar livros disponíveis ");
+            System.out.println("6 - Listar histórico do usuário ");
+            System.out.println("7 - Pegar livro emprestado ");
+            System.out.println("8 - Sair ");
             int opcao = scanner.nextInt();
             scanner.nextLine();
-
-            if (opcao == 1){
-                biblioteca.adicionarLivro();
-            } else if (opcao == 2) {
-                biblioteca.removerLivro();
-            } else{
-                break;
-            }
-
             
+            switch (opcao) {
+                case 1 -> biblioteca.adicionarLivro();
+                default -> {
+                    break OUTER;
+                }
+            }
         }
+
+        scanner.close();
+
 
 
 
