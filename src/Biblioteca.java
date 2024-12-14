@@ -56,8 +56,9 @@ public class Biblioteca {
         System.out.println("Livro adicionado com sucesso! ");
 
         
-        
+        scanner.close();
     }
+    
 
     public void removerLivro(){
 
@@ -84,5 +85,10 @@ public class Biblioteca {
         
     }
 
+
+
     
 }
+
+
+
