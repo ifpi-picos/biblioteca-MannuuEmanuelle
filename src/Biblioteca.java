@@ -23,6 +23,7 @@ public class Biblioteca {
         this.livros = livros;
     }
 
+    
     public void adicionarLivro(){
         
         System.out.println("Título: ");
@@ -50,41 +51,41 @@ public class Biblioteca {
         System.out.println("Código: ");
         int codigo = scanner.nextInt();
 
+        scanner.nextLine();
+        
         Livro livro = new Livro(titulo, autor, genero, editora, anoPublicacao, status, isbn, codigo);
         livros.add(livro);
 
         System.out.println("Livro adicionado com sucesso! ");
 
         
-        scanner.close();
-    }
-    
-
-    public void removerLivro(){
-
-        System.out.println("Remover por: \n1 - Título \n2 - Código\n");
-        int opcao = scanner.nextInt();
-        scanner.nextLine();
-
-        // TODO: Mudar forma de remover livro;
-
-        if (opcao == 1){
-            System.out.println("Digite o titulo: ");
-            String titulo = scanner.nextLine();
-
-            livros.remove(titulo);
-
-        }
-        else{
-            System.out.println("Digite o código: ");
-            int codigo = scanner.nextInt();
-            scanner.nextLine();
-
-            livros.remove(codigo);
-        }
         
     }
 
+
+
+    public void listarLivros(){
+        for (Livro livro : livros) {
+            System.out.println("Nome: " + livro.getNome());
+            System.out.println("Status: " + livro.getStatus());
+        }
+    }
+
+    public void listarLivrosEmprestados(){
+        for (Livro livro: livros){
+            if ("emprestado".equals(livro.getStatus())){
+                System.out.println("Título: " + livro.getNome());
+            }
+        }
+    }
+
+    public void listarLivrosDisponiveis(){
+        for (Livro livro: livros){
+            if ("disponivel".equals(livro.getStatus())){
+                System.out.println("Título: " + livro.getNome());
+            }
+        }
+    }
 
 
     
