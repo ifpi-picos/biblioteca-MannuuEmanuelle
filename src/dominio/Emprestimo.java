@@ -1,23 +1,43 @@
 
 package dominio;
+
+
+import java.time.LocalDate;
+import java.util.List;
+
+
 public class Emprestimo {
 
-    private int dataEmprestimo;
-    private int dataDevolucao;
-    public static void main(String[] args) {
-        
+    private List<Livro> livros;
+
+    private static LocalDate dataEmprestimo;
+        private  String nomeUsuario;
+        private String  nomeLivro;
+    
+        public static void main(String[] args) {
+            
+        }
+        public static LocalDate getDataEmprestimo() {
+            return dataEmprestimo;
     }
-    public int getDataEmprestimo() {
-        return dataEmprestimo;
+    public void setDataEmprestimo(LocalDate dataEmprestimo) {
+        Emprestimo.dataEmprestimo = dataEmprestimo;
     }
-    public void setDataEmprestimo(int dataEmprestimo) {
-        this.dataEmprestimo = dataEmprestimo;
+    
+    public String getNomeUsuario() {
+        return nomeUsuario;
     }
-    public int getDataDevolucao() {
-        return dataDevolucao;
+
+    public void setNomeUsuario(String nomeUsuario) {
+        this.nomeUsuario = nomeUsuario;
     }
-    public void setDataDevolucao(int dataDevolucao) {
-        this.dataDevolucao = dataDevolucao;
+
+    public String getNomeLivro() {
+        return nomeLivro;
+    }
+
+    public void setNomeLivro(String nomeLivro) {
+        this.nomeLivro = nomeLivro;
     }
 
     
