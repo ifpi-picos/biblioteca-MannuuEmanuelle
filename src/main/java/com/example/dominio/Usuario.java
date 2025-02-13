@@ -1,4 +1,6 @@
-package dominio;
+package com.example.dominio;
+
+
 public class Usuario {
 
     private String nome;
@@ -6,10 +8,13 @@ public class Usuario {
     private String email;
 
 
-    public static void main(String[] args) {
-        
+    public Usuario(String nome, String cpf, String email) {
+        this.nome = nome;
+        this.cpf = cpf;
+        this.email = email;
     }
-    
+
+
     public String getNome() {
         return nome;
     }

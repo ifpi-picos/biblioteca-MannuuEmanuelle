@@ -1,4 +1,5 @@
-package dominio;
+package com.example.dominio;
+
 
 public class Livro {
 
@@ -7,34 +8,26 @@ public class Livro {
     private String genero;
     private String editora;
     private int anoPublicacao;
+    private String isbn;
     private String status;
-    private int isbn;
-    private int codigo;
 
-    public Livro(String titulo, String autor, String genero, String editora, int anoPublicacao, String status, int isbn, int codigo) {
+    public Livro(String titulo, String autor, String genero, String editora, int anoPublicacao, String isbn, String status) {
         this.titulo = titulo;
         this.autor = autor;
         this.genero = genero;
         this.editora = editora;
         this.anoPublicacao = anoPublicacao;
-        this.status = status;
         this.isbn = isbn;
-        this.codigo = codigo;
+        this.status = status;
     }
 
-    public int getCodigo() {
-        return codigo;
-    }
 
-    public void setCodigo(int codigo) {
-        this.codigo = codigo;
-    }
 
     public static void main(String[] args) {
         System.out.println("Biblioteca");
     }
 
-    public String getNome() {
+    public String getTitulo() {
         return titulo;
     }
 
@@ -82,11 +75,11 @@ public class Livro {
         this.status = status;
     }
 
-    public int getIsbn() {
+    public String getIsbn() {
         return isbn;
     }
 
-    public void setIsbn(int isbn) {
+    public void setIsbn(String isbn) {
         this.isbn = isbn;
     }
 
