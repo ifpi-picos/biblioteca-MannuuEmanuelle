@@ -5,7 +5,7 @@ import java.time.LocalDate;
 public class Emprestimo {
 
     private int idLivro;
-    private static LocalDate dataEmprestimo;
+    private LocalDate dataEmprestimo;
     private int idUsuario;
 
     public Emprestimo(int idLivro, LocalDate dataEmprestimo, int idUsuario) {
@@ -20,7 +20,7 @@ public class Emprestimo {
     }
 
     public void setDataEmprestimo(LocalDate dataEmprestimo) {
-        Emprestimo.dataEmprestimo = dataEmprestimo;
+        this.dataEmprestimo = dataEmprestimo;
     }
 
     public int getIdLivro() {

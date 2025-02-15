@@ -22,17 +22,12 @@ public class Livro {
     }
 
 
-
-    public static void main(String[] args) {
-        System.out.println("Biblioteca");
-    }
-
     public String getTitulo() {
         return titulo;
     }
 
-    public void setTitulo(String nome) {
-        this.titulo = nome;
+    public void setTitulo(String titulo) {
+        this.titulo = titulo;
     }
 
     public String getAutor() {

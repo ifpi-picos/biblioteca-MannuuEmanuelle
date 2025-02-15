@@ -1,44 +1,32 @@
 package com.example.dominio;
 
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Scanner;
 
-import com.example.connection.Conexao;
 import com.example.dao.EmprestimoDAO;
 import com.example.dao.LivroDAO;
 import com.example.dao.UsuarioDAO;
 
-
 public class Biblioteca {
-    private List<Emprestimo> historicoEmprestimos;
-    private List<Livro> livros;
-    private List<Usuario> usuarios;
-    private List<Emprestimo> emprestimos;
-    private static LocalDate dataDevolucao;
+
+    public Connection conexao;
+
 
     static Scanner scanner = new Scanner(System.in);
     
-        public Biblioteca() {
-            this.livros = new ArrayList<>();
-            this.historicoEmprestimos = new ArrayList<>();
-            this.usuarios = new ArrayList<>();
-            this.scanner = new Scanner(System.in);
-    
+        public Biblioteca(Connection conexao) {
+            this.conexao = conexao;
         }
     
-        public List<Livro> getLivros() {
-            return livros;
-        }
-    
-        public void setLivros(List<Livro> livros) {
-            this.livros = livros;
-    
-        }
+        
+        EmprestimoDAO emprestimoDAO = new EmprestimoDAO(this.conexao);
     
         public void adicionarLivro() {
     
+        try {
             System.out.println("Título: ");
             String titulo = scanner.nextLine();
     
@@ -62,39 +50,88 @@ public class Biblioteca {
             String status = scanner.nextLine();
     
             Livro livro = new Livro(titulo, autor, genero, editora, anoPublicacao, isbn, status);
-            livros.add(livro);
     
+            LivroDAO livroDAO = new LivroDAO(conexao);
+            livroDAO.inserirLivro(livro);
+            
             System.out.println("Livro adicionado com sucesso! ");
-    
-            LivroDAO.inserirLivro(livro);
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
     
         }
+    
+        // public void listarLivros() throws SQLException {
+        //     new LivroDAO().listarLivros();
+
+            
+        // }
     
         public void listarLivros() {
-            LivroDAO.listarLivros();
-        }
-    
-        public void listarLivrosEmprestados() {
-            for (Livro livro : livros) {
-                if ("Emprestado".equalsIgnoreCase(livro.getStatus())) {
-                    System.out.println("Título: " + livro.getTitulo());
-                    System.out.println("Autor: " + livro.getAutor() + "\n");
-                }
+            
+
+        try {
+
+            LivroDAO livroDAO = new LivroDAO(conexao);
+            ResultSet livroAtual = livroDAO.listarLivros(); 
+
+            while(livroAtual.next()){
+                int id = livroAtual.getInt("id");
+                System.out.println("ID: " + id);
+
+                String titulo = livroAtual.getString("titulo");
+                System.out.println("Título: " + titulo);
+        
+                String autor = livroAtual.getString("autor");
+                System.out.println("Autor: " + autor);
+        
+                String genero = livroAtual.getString("genero");
+                System.out.println("Gênero: " + genero);
+        
+                String editora = livroAtual.getString("editora");
+                System.out.println("Editora: " + editora);
+        
+                int ano = livroAtual.getInt("ano_publicacao");
+                System.out.println("Ano de publicação: " + ano);
+        
+                String isbn = livroAtual.getString("isbn");
+                System.out.println("ISBN: " + isbn);
+        
+                String status = livroAtual.getString("status");
+                System.out.println("Status: " + status + "\n\n");
+        
             }
+        } catch (SQLException ex) {
         }
+                        
+               
+                    
+            } 
+        
+            
+        
+        // public void listarLivrosEmprestados() {
+        //     for (Livro livro : livros) {
+        //         if ("Emprestado".equalsIgnoreCase(livro.getStatus())) {
+        //             System.out.println("Título: " + livro.getTitulo());
+        //             System.out.println("Autor: " + livro.getAutor() + "\n");
+        //         }
+        //     }
+        // }
     
-        public void listarLivrosDisponiveis() {
-            for (Livro livro : livros) {
-                if ("Disponivel".equalsIgnoreCase(livro.getStatus())) {
-                    System.out.println("Título: " + livro.getTitulo());
-                    System.out.println("Autor: " + livro.getAutor() + "\n");
-                }
-            }
-        }
+        // public void listarLivrosDisponiveis() {
+        //     for (Livro livro : livros) {
+        //         if ("Disponivel".equalsIgnoreCase(livro.getStatus())) {
+        //             System.out.println("Título: " + livro.getTitulo());
+        //             System.out.println("Autor: " + livro.getAutor() + "\n");
+        //         }
+        //     }
+        // }
     
         public void pegarEmprestado() {
 
-            LocalDate dataEmprestimo = LocalDate.now();
+            
     
             System.out.println("ID do usuário: ");
             int idUsuario = scanner.nextInt();
@@ -105,19 +142,13 @@ public class Biblioteca {
             scanner.nextLine();
 
             try {
-                new EmprestimoDAO(Conexao.conexaoBanco()).realizarEmprestimo(idLivro, idUsuario, dataEmprestimo);
+
+                emprestimoDAO.realizarEmprestimo(idLivro, idUsuario, LocalDate.now());
+                
             } catch (Exception e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
-
-           
-
-            
-
-
-
-
     }
 
     public void devolverLivro() {
@@ -135,7 +166,9 @@ public class Biblioteca {
 
         
         try {
-            new EmprestimoDAO(Conexao.conexaoBanco()).devolverLivro(idLivro, idUsuario);
+            EmprestimoDAO emprestimoDAO = new EmprestimoDAO(conexao);
+            emprestimoDAO.devolverLivro(idLivro, idUsuario);
+            
            
             
         } catch (Exception e) {
@@ -174,10 +207,12 @@ public class Biblioteca {
             System.out.println("Email: ");
             String email = scanner.nextLine();
 
-            Usuario usuario = new Usuario(nome, cpf, email);
-            usuarios.add(usuario);
+            UsuarioDAO usuarioDAO = new UsuarioDAO(conexao);
+            usuarioDAO.inserirUsuario(nome, cpf, email);
 
-            UsuarioDAO.inserirUsuario(usuario);
+            
+            
+            
 
             System.out.println("Usuário cadastrado com sucesso!");
 
@@ -187,11 +222,5 @@ public class Biblioteca {
 
     }
 
-    public List<Usuario> getUsuarios() {
-        return usuarios;
-    }
 
-    public void setUsuarios(List<Usuario> usuarios) {
-        this.usuarios = usuarios;
-    }
 }

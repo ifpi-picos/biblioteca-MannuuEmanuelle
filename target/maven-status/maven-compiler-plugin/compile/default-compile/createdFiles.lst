@@ -1,0 +1,9 @@
+com/example/dominio/Usuario.class
+com/example/App.class
+com/example/dao/EmprestimoDAO.class
+com/example/dominio/Livro.class
+com/example/dao/LivroDAO.class
+com/example/dominio/Biblioteca.class
+com/example/connection/Conexao.class
+com/example/dominio/Emprestimo.class
+com/example/dao/UsuarioDAO.class
