@@ -10,6 +10,7 @@ public class EmprestimoDAO {
 
     String statusEncontrado;
     Connection conexao;
+    LivroDAO livroDAO = new LivroDAO();
 
     public EmprestimoDAO(Connection conexao) {
 
@@ -18,8 +19,6 @@ public class EmprestimoDAO {
         }
         this.conexao = conexao;
     }
-
-    LivroDAO livroDAO = new LivroDAO(this.conexao);
 
     public String buscandoStatusLivro(int id) throws SQLException {
         String sql = "SELECT status FROM livros WHERE id = ?";
@@ -100,7 +99,9 @@ public class EmprestimoDAO {
 
             }
 
-            String sql = "INSERT INTO emprestimos(nome_usuario, titulo_Livro, data_emprestimo, data_devolucao, status) VALUES(?, ?, ?, ?, ?)";
+            conexao.setAutoCommit(false);
+
+            String sql = "INSERT INTO emprestimos(nome_usuario, titulo_livro, data_emprestimo, data_devolucao, status) VALUES(?, ?, ?, ?, ?)";
 
             try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
                 stmt.setString(1, usuario);
@@ -108,8 +109,10 @@ public class EmprestimoDAO {
                 stmt.setDate(3, java.sql.Date.valueOf(LocalDate.now()));
                 stmt.setDate(4, java.sql.Date.valueOf(LocalDate.now().plusDays(7)));
                 stmt.setString(5, "Emprestado");
+                
 
-                conexao.setAutoCommit(false);
+                
+                
                 stmt.executeUpdate();
 
                 livroDAO.atualizarStatusLivro(idLivro, "Emprestado");
@@ -122,6 +125,7 @@ public class EmprestimoDAO {
         } catch (SQLException e) {
             try {
                 conexao.rollback();
+                e.printStackTrace();
             } catch (SQLException e1) {
 
                 e1.printStackTrace();
@@ -132,36 +136,70 @@ public class EmprestimoDAO {
 
     }
 
-    public void devolverLivro(int idLivro, int idUsuario) {
-        String sql = "UPDATE emprestimos SET status = ? WHERE id_livro = ? AND id_usuario = ?";
+    public void devolverLivro(int idLivro, int idUsuario) throws SQLException {
+        String nomeUsuario = usuarioEncontrado(idUsuario);
+        String tituloLivro = livroEncontrado(idLivro);
+
+        if (nomeUsuario == null || tituloLivro == null) {
+            System.out.println("Livro ou usuário não encontrado!");
+            return;
+        }
+
+        conexao.setAutoCommit(false);
+
+        String sql = "UPDATE emprestimos SET status = ? WHERE titulo_livro = ? AND nome_usuario = ?";
 
         try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
 
+
             stmt.setString(1, "Devolvido");
-            stmt.setInt(2, idLivro);
-            stmt.setInt(3, idUsuario);
-            conexao.setAutoCommit(false);
+            stmt.setString(2, tituloLivro);
+            stmt.setString(3, nomeUsuario);
+            
             stmt.executeUpdate();
 
             livroDAO.atualizarStatusLivro(idLivro, "Disponível");
 
             conexao.commit();
+            System.out.println("Livro devolvido!");
+
         } catch (SQLException e) {
-            // TODO Auto-generated catch block
+            
             try {
                 conexao.rollback();
+                e.printStackTrace();
             } catch (SQLException e1) {
-                // TODO Auto-generated catch block
+              
                 e1.printStackTrace();
             }
             e.printStackTrace();
         }
 
-        System.out.println("Livro devolvido!");
+        
 
     }
 
-    public void historicoEmprestimo() {
+    public ResultSet historicoEmprestimo(int idUsuario) throws SQLException {
+        String nomeUsuario = usuarioEncontrado(idUsuario);
+
+        
+        
+        String sql = "SELECT nome_usuario, titulo_livro, data_emprestimo, data_devolucao, status FROM emprestimos WHERE nome_usuario = ?";
+
+        PreparedStatement stmt = conexao.prepareStatement(sql);
+        
+            stmt.setString(1, nomeUsuario);
+            ResultSet resultado = stmt.executeQuery();
+            return resultado;
+
+            
+    
+
+        
+
+
+
+
 
     }
 
