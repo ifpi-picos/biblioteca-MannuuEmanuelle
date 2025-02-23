@@ -2,7 +2,7 @@ package com.example.dominio;
 
 
 public class Livro {
-
+    private Integer idLivro;
     private String titulo;
     private String autor;
     private String genero;
@@ -11,7 +11,8 @@ public class Livro {
     private String isbn;
     private String status;
 
-    public Livro(String titulo, String autor, String genero, String editora, int anoPublicacao, String isbn, String status) {
+    public Livro(Integer idLivro, String titulo, String autor, String genero, String editora, int anoPublicacao, String isbn, String status) {
+        this.idLivro = idLivro;
         this.titulo = titulo;
         this.autor = autor;
         this.genero = genero;
@@ -21,6 +22,13 @@ public class Livro {
         this.status = status;
     }
 
+    public int getIdLivro() {
+        return idLivro;
+    }
+
+    public void setIdLivro(int idLivro) {
+        this.idLivro = idLivro;
+    }
 
     public String getTitulo() {
         return titulo;
@@ -76,7 +84,6 @@ public class Livro {
 
     public void setIsbn(String isbn) {
         this.isbn = isbn;
-    }
-
+    }    
     
 }

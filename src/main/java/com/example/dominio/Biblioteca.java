@@ -1,9 +1,7 @@
 package com.example.dominio;
 
 import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.time.LocalDate;
+import java.util.List;
 import java.util.Scanner;
 
 import com.example.dao.EmprestimoDAO;
@@ -17,6 +15,10 @@ public class Biblioteca {
     LivroDAO livroDAO;
 
     static Scanner scanner = new Scanner(System.in);
+
+    List<Livro> listaLivros = livroDAO.listarLivros();
+    List<Livro> listaLivrosEmprestados = livroDAO.listarLivrosEmprestados();
+    List<Livro> listaLivrosDisponiveis = livroDAO.listarLivrosDisponiveis();
 
     public Biblioteca(Connection conexao) {
         this.conexao = conexao;
@@ -73,31 +75,34 @@ public class Biblioteca {
             System.out.println("Status: ");
             String status = scanner.nextLine();
 
-            Livro livro = new Livro(titulo, autor, genero, editora, anoPublicacao, isbn, status);
+            Livro livro = new Livro(null,titulo, autor, genero, editora, anoPublicacao, isbn, status);
 
             livroDAO.inserirLivro(livro);
+            listaLivros.add(livro);
 
             System.out.println("\nLivro adicionado com sucesso!\n");
 
-        } catch (SQLException ex) {
-            ex.printStackTrace();
+        } catch (Exception ex) {
+            System.out.println("Erro ao adicionar livro! " + ex.getMessage());
         }
 
     }
 
     public void pegarEmprestado() {
 
-        System.out.println("ID do usuário: ");
-        int idUsuario = scanner.nextInt();
-        scanner.nextLine();
-
-        System.out.println("ID do livro: ");
-        int idLivro = scanner.nextInt();
-        scanner.nextLine();
 
         try {
 
-            emprestimoDAO.realizarEmprestimo(idLivro, idUsuario, LocalDate.now());
+            System.out.println("ID do livro: ");
+            int idLivro = scanner.nextInt();
+            scanner.nextLine();
+
+            System.out.println("ID do usuário: ");
+            int idUsuario = scanner.nextInt();
+            scanner.nextLine();
+
+            
+            
 
         } catch (Exception e) {
 
@@ -115,13 +120,15 @@ public class Biblioteca {
         int idLivro = scanner.nextInt();
         scanner.nextLine();
 
+        livroDAO.atualizarStatusLivro(idLivro, "Disponível");
         if (idLivro < 0 || idUsuario < 0) {
             System.out.println("\nID do usuário ou livro não encontrado.\n");
         }
 
+        
         try {
 
-            emprestimoDAO.devolverLivro(idLivro, idUsuario);
+            // emprestimoDAO.devolverLivro(idLivro, idUsuario);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -133,37 +140,23 @@ public class Biblioteca {
 
         try {
 
-            ResultSet livroAtual = livroDAO.listarLivros();
-
+            
+           
             System.out.println("\n--- LIVROS ---\n");
-            while (livroAtual.next()) {
-                int id = livroAtual.getInt("id");
-                System.out.println("ID: " + id);
 
-                String titulo = livroAtual.getString("titulo");
-                System.out.println("Título: " + titulo);
-
-                String autor = livroAtual.getString("autor");
-                System.out.println("Autor: " + autor);
-
-                String genero = livroAtual.getString("genero");
-                System.out.println("Gênero: " + genero);
-
-                String editora = livroAtual.getString("editora");
-                System.out.println("Editora: " + editora);
-
-                int ano = livroAtual.getInt("ano_publicacao");
-                System.out.println("Ano de publicação: " + ano);
-
-                String isbn = livroAtual.getString("isbn");
-                System.out.println("ISBN: " + isbn);
-
-                String status = livroAtual.getString("status");
-                System.out.println("Status: " + status + "\n");
-
+            for(Livro livro : listaLivros){
+                System.out.println("ID: " + livro.getIdLivro());
+                System.out.println("Título: " + livro.getTitulo());
+                System.out.println("Autor: " + livro.getAutor());
+                System.out.println("Gênero: " + livro.getGenero());
+                System.out.println("Editora: " + livro.getEditora());
+                System.out.println("Ano de publicação: " + livro.getAnoPublicacao());
+                System.out.println("ISBN: " + livro.getIsbn());
+                System.out.println("Status: " + livro.getStatus());
+                System.out.println();
             }
-        } catch (SQLException ex) {
-            ex.printStackTrace();
+        } catch (Exception e) {
+            System.err.println("Erro ao listar livros " + e.getMessage());
         }
 
     }
@@ -172,34 +165,23 @@ public class Biblioteca {
 
         try {
 
-            ResultSet livroAtual = livroDAO.listarLivrosEmprestados();
+
+
             System.out.println("\n--- LIVROS EMPRESTADOS ---\n");
 
-            while (livroAtual.next()) {
-                int id = livroAtual.getInt("id");
-                System.out.println("ID: " + id);
-
-                String titulo = livroAtual.getString("titulo");
-                System.out.println("Título: " + titulo);
-
-                String autor = livroAtual.getString("autor");
-                System.out.println("Autor: " + autor);
-
-                String genero = livroAtual.getString("genero");
-                System.out.println("Gênero: " + genero);
-
-                String editora = livroAtual.getString("editora");
-                System.out.println("Editora: " + editora);
-
-                int ano = livroAtual.getInt("ano_publicacao");
-                System.out.println("Ano de publicação: " + ano);
-
-                String isbn = livroAtual.getString("isbn");
-                System.out.println("ISBN: " + isbn + "\n");
-
-            }
-        } catch (SQLException ex) {
-            ex.printStackTrace();
+            for(Livro livro : listaLivrosEmprestados){
+                System.out.println("ID: " + livro.getIdLivro());
+                System.out.println("Título:" + livro.getTitulo());
+                System.out.println("Autor: " + livro.getAutor());
+                System.out.println("Gênero: " + livro.getGenero());
+                System.out.println("Editora: " + livro.getEditora());
+                System.out.println("Ano de publicação: " + livro.getAnoPublicacao());
+                System.out.println("ISBN: " + livro.getIsbn());
+            
+            } 
+        }   
+        catch (Exception e) {
+            System.err.println("Erro ao listar livros emprestados " + e.getMessage());
         }
 
     }
@@ -207,79 +189,68 @@ public class Biblioteca {
     public void listarLivrosDisponiveis() {
 
         try {
-
-            ResultSet livroAtual = livroDAO.listarLivrosDisponiveis();
-
+            
             System.out.println("\n--- LIVROS DISPONÍVEIS ---\n");
 
-            while (livroAtual.next()) {
-                int id = livroAtual.getInt("id");
-                System.out.println("ID: " + id);
-
-                String titulo = livroAtual.getString("titulo");
-                System.out.println("Título: " + titulo);
-
-                String autor = livroAtual.getString("autor");
-                System.out.println("Autor: " + autor);
-
-                String genero = livroAtual.getString("genero");
-                System.out.println("Gênero: " + genero);
-
-                String editora = livroAtual.getString("editora");
-                System.out.println("Editora: " + editora);
-
-                int ano = livroAtual.getInt("ano_publicacao");
-                System.out.println("Ano de publicação: " + ano);
-
-                String isbn = livroAtual.getString("isbn");
-                System.out.println("ISBN: " + isbn + "\n");
-
-            }
-        } catch (SQLException ex) {
-            ex.printStackTrace();
+            for (Livro livro : listaLivrosDisponiveis) {
+                System.out.println("ID: " + livro.getIdLivro());
+                System.out.println("Título:  " + livro.getTitulo());
+                System.out.println("Autor: " + livro.getAutor());
+                System.out.println("Gênero: " + livro.getGenero());
+                System.out.println("Editora: " + livro.getEditora());
+                System.out.println("Ano de publicação: " + livro.getAnoPublicacao());
+                System.out.println("ISBN: " + livro.getIsbn());
+                System.out.println();
+    
         }
 
-    }
-
-
-    public void exibirHistorico() throws SQLException{
-
-        System.out.println("ID do usuário: ");
-        int idUsuario = scanner.nextInt();
-        scanner.nextLine();
-
-        if (idUsuario < 0){
-            System.out.println("ID do usuário não encontrado.");
-            return;
+        } catch (Exception e) {
+            System.err.println("Erro ao listar livros disponíveis" + e.getMessage());
         }
+        
 
-        try {
-            ResultSet usuarioAtual = emprestimoDAO.historicoEmprestimo(idUsuario);
-            boolean historicoEncontrado = false;
+        
+
+}
+}
+//     public void exibirHistorico() throws SQLException{
+
+//         System.out.println("ID do usuário: ");
+//         int idUsuario = scanner.nextInt();
+//         scanner.nextLine();
+
+//         if (idUsuario < 0){
+//             System.out.println("ID do usuário não encontrado.");
+//             return;
+//         }
+
+//         try {
+//             // ResultSet usuarioAtual = emprestimoDAO.historicoEmprestimo(idUsuario);
+//             boolean historicoEncontrado = false;
 
             
 
-            System.out.println("--- HISTÓRICO DE EMPRÉSTIMOS --- \n");
-            while(usuarioAtual.next()){
-                historicoEncontrado = true;
-                System.out.println("Nome do usuário: " + usuarioAtual.getString("nome_usuario"));
-                System.out.println("Título do livro: " + usuarioAtual.getString("titulo_livro"));
-                System.out.println("Data de empréstimo: " + usuarioAtual.getString("data_emprestimo"));
-                System.out.println("Data de devolução: " + usuarioAtual.getString("data_devolucao"));
-                System.out.println("Status: " + usuarioAtual.getString("status") + "\n");
+//             System.out.println("--- HISTÓRICO DE EMPRÉSTIMOS --- \n");
+//             while(usuarioAtual.next()){
+//                 historicoEncontrado = true;
+//                 System.out.println("Nome do usuário: " + usuarioAtual.getString("nome_usuario"));
+//                 System.out.println("Título do livro: " + usuarioAtual.getString("titulo_livro"));
+//                 System.out.println("Data de empréstimo: " + usuarioAtual.getString("data_emprestimo"));
+//                 System.out.println("Data de devolução: " + usuarioAtual.getString("data_devolucao"));
+//                 System.out.println("Status: " + usuarioAtual.getString("status") + "\n");
 
-            }
+//             }
 
-            if (!historicoEncontrado){
-                System.out.println("Nenhum histórico de empréstimos para este usuário!\n");
-            }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+//             if (!historicoEncontrado){
+//                 System.out.println("Nenhum histórico de empréstimos para este usuário!\n");
+//             }
+//             } catch (Exception e) {
+//                 e.printStackTrace();
+//             }
 
         
-    }
+//     }
 
     
 
-}
+// }

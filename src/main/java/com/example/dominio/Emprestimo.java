@@ -4,15 +4,29 @@ import java.time.LocalDate;
 
 public class Emprestimo {
 
-    private int idLivro;
+    private Usuario usuario;
+    private Livro livro;
     private LocalDate dataEmprestimo;
-    private int idUsuario;
+    
 
-    public Emprestimo(int idLivro, LocalDate dataEmprestimo, int idUsuario) {
-        this.idLivro = idLivro;
+    public Emprestimo(Usuario usuario,  Livro livro, LocalDate dataEmprestimo) {
+        this.usuario = usuario;
+        this.livro = livro;
         this.dataEmprestimo = dataEmprestimo;
-        this.idUsuario = idUsuario;
+        
 
+    }
+
+    public Livro livro() {
+        return livro;
+    }
+
+    public Livro getLivro() {
+        return livro;
+    }
+
+    public void setLivro(Livro livro) {
+        this.livro = livro;
     }
 
     public LocalDate getDataEmprestimo() {
@@ -23,20 +37,12 @@ public class Emprestimo {
         this.dataEmprestimo = dataEmprestimo;
     }
 
-    public int getIdLivro() {
-        return idLivro;
+    public Usuario getUsuario() {
+        return usuario;
     }
 
-    public void setIdLivro(int idLivro) {
-        this.idLivro = idLivro;
-    }
-
-    public int getIdUsuario() {
-        return idUsuario;
-    }
-
-    public void setIdUsuario(int idUsuario) {
-        this.idUsuario = idUsuario;
+    public void setUsuario(Usuario usuario) {
+        this.usuario = usuario;
     }
 
 }

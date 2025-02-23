@@ -2,15 +2,16 @@ package com.example.dao;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 
+import com.example.dominio.Livro;
+import com.example.dominio.Usuario;
+
 public class EmprestimoDAO {
 
-    String statusEncontrado;
     Connection conexao;
-    LivroDAO livroDAO = new LivroDAO();
+    
 
     public EmprestimoDAO(Connection conexao) {
 
@@ -20,80 +21,18 @@ public class EmprestimoDAO {
         this.conexao = conexao;
     }
 
-    public String buscandoStatusLivro(int id) throws SQLException {
-        String sql = "SELECT status FROM livros WHERE id = ?";
+    public void realizarEmprestimo(Livro livro, Usuario usuario, LocalDate dataEmprestimo) {
 
-        try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
-            stmt.setInt(1, id);
-            try (ResultSet resultado = stmt.executeQuery()) {
-                if (resultado.next()) {
-                    statusEncontrado = resultado.getString("status");
-                }
-            }
 
-            return statusEncontrado;
+       
 
-        }
-    }
-
-    public String usuarioEncontrado(int id) throws SQLException {
-        String usuarioEncontrado = null;
-
-        String sql = "SELECT nome FROM usuarios WHERE id = ?";
-
-        try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
-            stmt.setInt(1, id);
-            try (ResultSet resultado = stmt.executeQuery()) {
-                if (resultado.next()) {
-                    usuarioEncontrado = resultado.getString("nome");
-                }
-
-            }
-
-        }
-        return usuarioEncontrado != null ? usuarioEncontrado : "Usuário não encontrado!";
-
-    }
-
-    public String livroEncontrado(int id) throws SQLException {
-        String livroEncontrado = null;
-
-        String sql = "SELECT titulo FROM livros WHERE id = ?";
-
-        try (PreparedStatement stmt = conexao.prepareStatement(sql);) {
-            stmt.setInt(1, id);
-            try (ResultSet resultado = stmt.executeQuery()) {
-                if (resultado.next()) {
-                    livroEncontrado = resultado.getString("titulo");
-                }
-
-            }
-        }
-
-        return livroEncontrado != null ? livroEncontrado : "Livro não encontrado!";
-    }
-
-    public void realizarEmprestimo(int idLivro, int idUsuario, LocalDate dataEmprestimo) {
-
-        String usuario;
-        String livro;
-        String statusLivro;
         try {
-            usuario = usuarioEncontrado(idUsuario);
-            livro = livroEncontrado(idLivro);
-            statusLivro = buscandoStatusLivro(idLivro);
 
-            if ("Usuário não encontrado!".equals(usuario)) {
-                System.out.println("Usuário não encontrado!");
-                return;
-            }
+            int idLivro = livro.getIdLivro();
+            int idUsuario = usuario.getIdUsuario();
+    
 
-            if ("Livro não encontrado!".equals(livro)) {
-                System.out.println("Livro não encontrado!");
-                return;
-            }
-
-            if (!"disponível".equalsIgnoreCase(statusLivro)) {
+            if (!"disponível".equalsIgnoreCase(livro.getStatus())) {
                 System.out.println("Livro não disponível para empréstimo!");
                 return;
 
@@ -101,21 +40,22 @@ public class EmprestimoDAO {
 
             conexao.setAutoCommit(false);
 
-            String sql = "INSERT INTO emprestimos(nome_usuario, titulo_livro, data_emprestimo, data_devolucao, status) VALUES(?, ?, ?, ?, ?)";
+            String sql = "INSERT INTO emprestimos(id_usuario, id_livro, nome_usuario, titulo_livro, data_emprestimo, data_devolucao, status) VALUES(?, ?, ?, ?, ?, ?, ?)";
 
             try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
-                stmt.setString(1, usuario);
-                stmt.setString(2, livro);
-                stmt.setDate(3, java.sql.Date.valueOf(LocalDate.now()));
-                stmt.setDate(4, java.sql.Date.valueOf(LocalDate.now().plusDays(7)));
-                stmt.setString(5, "Emprestado");
+                stmt.setInt(1, idUsuario);
+                stmt.setInt(2, idLivro);
+                stmt.setString(3, usuario.getNome());
+                stmt.setString(4, livro.getTitulo());
+                stmt.setDate(5, java.sql.Date.valueOf(dataEmprestimo));
+                stmt.setDate(6, java.sql.Date.valueOf(dataEmprestimo.plusDays(7)));
+                stmt.setString(7, "Emprestado");
                 
 
                 
                 
                 stmt.executeUpdate();
 
-                livroDAO.atualizarStatusLivro(idLivro, "Emprestado");
 
                 conexao.commit();
                 System.out.println("Empréstimo realizado com sucesso!");
@@ -125,82 +65,103 @@ public class EmprestimoDAO {
         } catch (SQLException e) {
             try {
                 conexao.rollback();
-                e.printStackTrace();
+                System.err.println("Erro ao realizar empréstimo " + e.getMessage());
+
             } catch (SQLException e1) {
 
-                e1.printStackTrace();
+                System.err.println("Erro ao realizar rollback" + e1.getMessage());
             }
 
-            e.printStackTrace();
+            
         }
 
     }
 
-    public void devolverLivro(int idLivro, int idUsuario) throws SQLException {
-        String nomeUsuario = usuarioEncontrado(idUsuario);
-        String tituloLivro = livroEncontrado(idLivro);
+    public void devolverLivro(Livro livro, Usuario usuario) {
+        
+       try {
+            int idLivro = livro.getIdLivro();
+            int idUsuario = usuario.getIdUsuario();
 
-        if (nomeUsuario == null || tituloLivro == null) {
-            System.out.println("Livro ou usuário não encontrado!");
-            return;
-        }
+            if (!"emprestado".equalsIgnoreCase(livro.getStatus())) {
+                System.out.println("Livro ou usuário não encontrado!");
+                return;
+            }
 
-        conexao.setAutoCommit(false);
+            conexao.setAutoCommit(false);
 
-        String sql = "UPDATE emprestimos SET status = ? WHERE titulo_livro = ? AND nome_usuario = ?";
+            String sql = "UPDATE emprestimos SET status = ? WHERE id_livro = ? AND id_usuario = ?";
 
-        try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
+            try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
 
 
-            stmt.setString(1, "Devolvido");
-            stmt.setString(2, tituloLivro);
-            stmt.setString(3, nomeUsuario);
+                stmt.setString(1, "Devolvido'");
+                stmt.setInt(2, idLivro);
+                stmt.setInt(3, idUsuario);
+                
+                stmt.executeUpdate();
+
+
+                
+
+            } 
             
-            stmt.executeUpdate();
-
-            livroDAO.atualizarStatusLivro(idLivro, "Disponível");
-
             conexao.commit();
             System.out.println("Livro devolvido!");
-
+            
         } catch (SQLException e) {
-            
-            try {
-                conexao.rollback();
-                e.printStackTrace();
-            } catch (SQLException e1) {
-              
-                e1.printStackTrace();
+                
+                try {
+                    conexao.rollback();
+                    System.err.println("Erro ao devolver livro! " + e.getMessage());
+
+                } catch (SQLException e1) {
+                    System.err.println("Erro ao realizar rollback " + e1.getMessage());
+                    
+                }
+                
             }
-            e.printStackTrace();
+        
+                    
         }
-
-        
-
     }
 
-    public ResultSet historicoEmprestimo(int idUsuario) throws SQLException {
-        String nomeUsuario = usuarioEncontrado(idUsuario);
 
-        
-        
-        String sql = "SELECT nome_usuario, titulo_livro, data_emprestimo, data_devolucao, status FROM emprestimos WHERE nome_usuario = ?";
+//     public List<Emprestimo> historicoEmprestimo(Usuario usuario) {
 
-        PreparedStatement stmt = conexao.prepareStatement(sql);
-        
-            stmt.setString(1, nomeUsuario);
-            ResultSet resultado = stmt.executeQuery();
-            return resultado;
+//         List<Emprestimo> listaHistoricoEmprestimos = new ArrayList<>();
 
+//         int idUsuario = usuario.getIdUsuario();
+
+//         String sql = "SELECT * FROM emprestimos WHERE id_usuario = ?";
+
+
+
+
+//         try {
+
+//             PreparedStatement stmt = conexao.prepareStatement(sql);
+//             stmt.setInt(1, idUsuario);
+
+//             ResultSet resultado = stmt.executeQuery();
             
-    
+//             while (resultado.next()){
+//                 String nomeUsuario = resultado.getString("nome_usuario");
+//                 String tituloLivro = resultado.getString("titulo_livro");
+//                 Date dataEmprestimo = resultado.getDate("data_emprestimo");
+//                 Date dataDevolucao = resultado.getDate("data_devolucao");
+//                 String status = resultado.getString("status");
 
+
+
+                
+//             }
+//             return listaHistoricoEmprestimos;
+
+//         } catch (Exception e) {
+//             System.err.println("Erro ao listar livros " + e.getMessage());
+//         }
         
 
 
-
-
-
-    }
-
-}
+// }
