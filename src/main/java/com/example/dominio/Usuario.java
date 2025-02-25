@@ -7,8 +7,14 @@ public class Usuario {
     private String email;
 
 
-    public Usuario(Integer idUsuario, String nome, String cpf, String email) {
+    public Usuario(int idUsuario, String nome, String cpf, String email) {
         this.idUsuario = idUsuario;
+        this.nome = nome;
+        this.cpf = cpf;
+        this.email = email;
+    }
+
+    public Usuario(String nome, String cpf, String email) {
         this.nome = nome;
         this.cpf = cpf;
         this.email = email;

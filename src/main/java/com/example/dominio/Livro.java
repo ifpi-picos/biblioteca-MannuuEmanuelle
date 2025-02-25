@@ -11,7 +11,7 @@ public class Livro {
     private String isbn;
     private String status;
 
-    public Livro(Integer idLivro, String titulo, String autor, String genero, String editora, int anoPublicacao, String isbn, String status) {
+    public Livro(int idLivro, String titulo, String autor, String genero, String editora, int anoPublicacao, String isbn, String status) {
         this.idLivro = idLivro;
         this.titulo = titulo;
         this.autor = autor;
@@ -21,6 +21,19 @@ public class Livro {
         this.isbn = isbn;
         this.status = status;
     }
+
+    public Livro(String titulo, String autor, String genero, String editora, int anoPublicacao, String isbn, String status) {
+        this.titulo = titulo;
+        this.autor = autor;
+        this.genero = genero;
+        this.editora = editora;
+        this.anoPublicacao = anoPublicacao;
+        this.isbn = isbn;
+        this.status = status;
+    }
+
+
+
 
     public int getIdLivro() {
         return idLivro;

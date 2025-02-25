@@ -5,7 +5,6 @@ import java.sql.SQLException;
 import java.util.Scanner;
 
 import com.example.connection.Conexao;
-import com.example.dao.LivroDAO;
 import com.example.dominio.Biblioteca;
 
 public class App {
@@ -17,7 +16,7 @@ public class App {
             Biblioteca biblioteca = new Biblioteca(conexao);
             // System.out.println("Conexão na Biblioteca: " + (biblioteca.conexao != null));
 
-            LivroDAO livroDAO = new LivroDAO();
+            // LivroDAO livroDAO = new LivroDAO(conexao);
             // System.out.println("Conexão no LivroDAO: " + (livroDAO.conexao != null));
             
 

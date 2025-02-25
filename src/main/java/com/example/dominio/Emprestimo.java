@@ -8,6 +8,7 @@ public class Emprestimo {
     private Livro livro;
     private LocalDate dataEmprestimo;
     
+    
 
     public Emprestimo(Usuario usuario,  Livro livro, LocalDate dataEmprestimo) {
         this.usuario = usuario;
@@ -15,7 +16,11 @@ public class Emprestimo {
         this.dataEmprestimo = dataEmprestimo;
         
 
+        
+
     }
+
+    
 
     public Livro livro() {
         return livro;
@@ -44,5 +49,8 @@ public class Emprestimo {
     public void setUsuario(Usuario usuario) {
         this.usuario = usuario;
     }
+
+
+
 
 }

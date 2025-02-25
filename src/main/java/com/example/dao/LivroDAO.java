@@ -4,29 +4,32 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.example.connection.Conexao;
 import com.example.dominio.Livro;
 
 public class LivroDAO {
 
-    String statusEncontrado;
+   
     Connection conexao;
 
-    public LivroDAO() {
-        try {
-            this.conexao = Conexao.conexaoBanco();
-        } catch (SQLException e) {
-            System.out.println("Erro ao conectar ao banco de dados: " + e.getMessage());
+    public LivroDAO(Connection conexao) {
+
+        if (conexao == null){
+            System.err.println("Erro ao fazer conexão! ");
+
         }
+        this.conexao = conexao;
+
+      
     }
 
-    public void inserirLivro(Livro livro) {
+    public int inserirLivro(Livro livro) {
         String sql = "INSERT INTO livros(titulo, autor, genero, editora, ano_publicacao, isbn, status) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
-        try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
+        try (PreparedStatement stmt = conexao.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, livro.getTitulo());
             stmt.setString(2, livro.getAutor());
             stmt.setString(3, livro.getGenero());
@@ -37,14 +40,28 @@ public class LivroDAO {
 
             stmt.executeUpdate();
 
-        } catch(Exception e){
-            System.err.println("Erro ao conectar com o banco de dados!");
-        }
 
+            try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    return generatedKeys.getInt(1);
+                }
+                
+            } catch (Exception e) {
+                System.out.println("Erro ao buscar ID do livro: " + e.getMessage());
+            }
+
+            
+
+        } catch(Exception e){
+            System.err.println("Erro ao conectar com o banco de dados! " + e.getMessage());
+        }
+        return -1;
     }
 
     public void atualizarStatusLivro(int id, String status) {
 
+        System.out.println("Testando...");
+        
         String sql = "UPDATE livros SET status = ? WHERE id = ? ";
 
         try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
@@ -52,6 +69,7 @@ public class LivroDAO {
             stmt.setInt(2, id);
 
             stmt.executeUpdate();
+
         } catch (SQLException e) {
             System.err.println("Erro ao conectar com banco de dados");
 
@@ -62,11 +80,9 @@ public class LivroDAO {
     public List<Livro> listarLivros() {
 
         
-        String sql = "SELECT * FROM livros";
+        String sql = "SELECT * FROM livros"; 
 
-        List<Livro> listaLivros;
-
-        listaLivros = new ArrayList<>();
+        List<Livro> listaLivros = new ArrayList<>();
 
         try (PreparedStatement stmt = conexao.prepareStatement(sql); 
             ResultSet resultado = stmt.executeQuery()) {
@@ -95,33 +111,34 @@ public class LivroDAO {
 
     public List<Livro> listarLivrosEmprestados() {
 
-        String sql = "SELECT * FROM livros WHERE status = ?";
+        String sql = "SELECT * FROM livros WHERE status = ?"; // Fetch books based on status
 
         List<Livro> listaLivrosEmprestados = new ArrayList<>();
 
         try(PreparedStatement stmt = conexao.prepareStatement(sql)) {
-        ResultSet resultado = stmt.executeQuery();
+            stmt.setString(1, "Emprestado");
+        
+            try (ResultSet resultado = stmt.executeQuery()) {
+                while(resultado.next()){
+                    int id = resultado.getInt("id");
+                    String titulo = resultado.getString("titulo");
+                    String autor = resultado.getString("autor");
+                    String genero = resultado.getString("genero");
+                    String editora = resultado.getString("editora");
+                    int anoPublicacao = resultado.getInt("ano_publicacao");
+                    String isbn = resultado.getString("isbn");
+                    String status = resultado.getString("status");
+        
+                    Livro livro = new Livro(id, titulo, autor, genero, editora, anoPublicacao, isbn, status);
+                    listaLivrosEmprestados.add(livro);
+                }
 
-
-        while(resultado.next()){
-            int id = resultado.getInt("id");
-            String titulo = resultado.getString("titulo");
-            String autor = resultado.getString("autor");
-            String genero = resultado.getString("genero");
-            String editora = resultado.getString("editora");
-            int anoPublicacao = resultado.getInt("ano_publicacao");
-            String isbn = resultado.getString("isbn");
-            String status = resultado.getString("status");
-
-            Livro livro = new Livro(id, titulo, autor, genero, editora, anoPublicacao, isbn, status);
-            listaLivrosEmprestados.add(livro);
-        }
+            }
             
-        } catch (Exception ex) {
-            System.err.println("Erro ao conectar com banco de dados!" + ex.getMessage());
-            
-
-        }
+        } catch (SQLException e) {
+            System.err.println("Erro ao listar livros emprestados! " + e.getMessage());
+        }   
+    
 
         return listaLivrosEmprestados;
         
@@ -130,25 +147,27 @@ public class LivroDAO {
 
     public List<Livro> listarLivrosDisponiveis() {
 
-        String sql = "SELECT * FROM livros WHERE status = ?";
+        String sql = "SELECT * FROM livros WHERE status = ?"; // Fetch available books
 
         List<Livro> listaLivrosDisponiveis = new ArrayList<>();
 
         try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
-            ResultSet resultado = stmt.executeQuery();
-            
-            while (resultado.next()){
-                int id = resultado.getInt("id");
-                String titulo = resultado.getString("titulo");
-                String autor = resultado.getString("autor");
-                String genero = resultado.getString("genero");
-                String editora = resultado.getString("editora");
-                int anoPublicacao = resultado.getInt("ano_publicacao");
-                String isbn = resultado.getString("isbn");
-                String status = resultado.getString("status");
+            stmt.setString(1, "Disponível");
+            try (ResultSet resultado = stmt.executeQuery()) {
 
-                Livro livro = new Livro(id, titulo, autor, genero, editora, anoPublicacao, isbn, status);
-                listaLivrosDisponiveis.add(livro);
+                while (resultado.next()){
+                    int id = resultado.getInt("id");
+                    String titulo = resultado.getString("titulo");
+                    String autor = resultado.getString("autor");
+                    String genero = resultado.getString("genero");
+                    String editora = resultado.getString("editora");
+                    int anoPublicacao = resultado.getInt("ano_publicacao");
+                    String isbn = resultado.getString("isbn");
+                    String status = resultado.getString("status");
+    
+                    Livro livro = new Livro(id, titulo, autor, genero, editora, anoPublicacao, isbn, status);
+                    listaLivrosDisponiveis.add(livro);
+                }
             }
             
         } catch (SQLException e) {
