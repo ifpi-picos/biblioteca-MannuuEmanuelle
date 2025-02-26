@@ -44,7 +44,7 @@ public class App {
                         case 5 -> biblioteca.listarLivros();
                         case 6 -> biblioteca.listarLivrosEmprestados();
                         case 7 -> biblioteca.listarLivrosDisponiveis();
-                        // case 8 -> biblioteca.exibirHistorico();
+                        case 8 -> biblioteca.exibirHistorico();
                         case 9 -> {
                             System.out.println("\nSaindo...\n");
                             return;

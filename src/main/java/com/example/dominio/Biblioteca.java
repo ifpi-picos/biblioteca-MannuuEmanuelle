@@ -39,11 +39,9 @@ public class Biblioteca {
         listaLivros = livroDAO.listarLivros();
         listaLivrosDisponiveis = livroDAO.listarLivrosDisponiveis();
         listaLivrosEmprestados = livroDAO.listarLivrosEmprestados();
-        
     }
 
     public void adicionarUsuario() {
-
         try {
             System.out.println("Nome:");
             String nome = scanner.nextLine();
@@ -55,28 +53,23 @@ public class Biblioteca {
             String email = scanner.nextLine();
 
             Usuario usuario = new Usuario(nome, cpf, email);
-
             usuarios.add(usuario);
             int idUsuario = usuarioDAO.inserirUsuario(usuario);
 
             if (idUsuario > 0) {
                 usuario.setId(idUsuario);
                 usuarios.add(usuario);
-
             } else {
                 System.out.println("Erro ao adicionar livro! ID com valor negativo!");
             }
 
             System.out.println("\nUsuário cadastrado com sucesso!\n" + "ID do usuário cadastrado: " + idUsuario);
-
         } catch (SQLException e) {
             System.err.println("Erro ao adicionar usuário! " + e.getMessage());
         }
-
     }
 
     public void adicionarLivro() {
-
         try {
             System.out.println("Título: ");
             String titulo = scanner.nextLine();
@@ -107,31 +100,24 @@ public class Biblioteca {
                 livro.setIdLivro(idLivro);
                 listaLivros.add(livro);
                 listaLivrosDisponiveis.add(livro);
-                // atualizarListas(); // Removed to prevent overwriting the updated borrowed
-                // list
-
             } else {
                 System.out.println("Erro ao adicionar livro! ID com valor negativo!");
             }
 
-            System.out.println("\nLivro adicionado com sucesso!\n" + "ID do livro cadastrado: " + idLivro);
-
+            System.out.println("\nLivro adicionado com sucesso!\n" + "ID do livro cadastrado: " + idLivro + "\n");
         } catch (Exception ex) {
             System.out.println("Erro ao adicionar livro! " + ex.getMessage());
         }
-
     }
 
     public void pegarEmprestado() {
-
         try {
-
             usuarios = usuarioDAO.exibirUsuarios();
 
-            System.out.println("--- USUÁRIOS CADASTRADOS ---");
-            for (Usuario usuario : usuarios) {
-                System.out.println("ID:" + usuario.getIdUsuario() + "\nNome: " + usuario.getNome() + "\n");
-            }
+            // System.out.println("--- USUÁRIOS CADASTRADOS ---");
+            // for (Usuario usuario : usuarios) {
+            //     System.out.println("ID:" + usuario.getIdUsuario() + "\nNome: " + usuario.getNome() + "\n");
+            // }
 
             System.out.println("--- LIVROS DISPONÍVEIS --- ");
             for (Livro livro : listaLivrosDisponiveis) {
@@ -169,10 +155,11 @@ public class Biblioteca {
             }
 
             if (livroEncontrado == null) {
-                System.out.println("Livro não encontrado!");
+                System.out.println("Livro não encontrado ou não disponível!");
                 return;
             }
 
+            if (!"Disponível".equalsIgnoreCase(livroEncontrado.getStatus()));
             LocalDate dataEmprestimo = LocalDate.now();
 
             if (conexao == null) {
@@ -184,18 +171,14 @@ public class Biblioteca {
             listaLivrosEmprestados.add(livroEncontrado);
             listaLivrosDisponiveis.remove(livroEncontrado);
 
+
         } catch (Exception e) {
             System.err.println("Erro ao realizar empréstimo! " + e.getMessage());
-
         }
     }
 
     public void devolverLivro() {
         try {
-
-            usuarios = usuarioDAO.exibirUsuarios();
-            listaLivrosEmprestados = livroDAO.listarLivrosEmprestados();
-
             System.out.println("ID do usuário: ");
             int idUsuario = scanner.nextInt();
             scanner.nextLine();
@@ -204,46 +187,34 @@ public class Biblioteca {
             int idLivro = scanner.nextInt();
             scanner.nextLine();
 
-            Usuario usuarioEncontrado = null;
+            Emprestimo emprestimo = emprestimoDAO.procurarEmprestimo(idUsuario, idLivro);
 
-            for (Usuario usuario : usuarios) {
-                if (usuario.getIdUsuario() == idUsuario) {
-                    usuarioEncontrado = usuario;
-                    break;
-                }
-            }
-            if (usuarioEncontrado == null) {
-                System.out.println("Usuário não encontrado!");
+            if (emprestimo == null) {
+                System.out.println("Empréstimo não encontrado!");
                 return;
             }
 
-            Livro livroEncontrado = null;
-
+            Livro livroDevolvido = null;
             for (Livro livro : listaLivrosEmprestados) {
                 if (livro.getIdLivro() == idLivro) {
-                    livroEncontrado = livro;
+                    livroDevolvido = livro;
                     break;
                 }
             }
 
-            if (livroEncontrado == null) {
-                System.out.println("Livro não encontrado!");
-                return;
+            if (livroDevolvido != null) {
+                
+                emprestimoDAO.devolverLivro(emprestimo);
+                livroDAO.atualizarStatusLivro(idLivro, "Disponível");
+                listaLivrosDisponiveis.add(livroDevolvido);
+                listaLivrosEmprestados.remove(livroDevolvido);
+                System.out.println("Livro devolvido com sucesso!");
+
+            } else {
+                System.out.println("Livro não encontrado na lista de emprestados.");
             }
-
-            if (conexao == null) {
-                System.err.println("Erro: conexão com o banco de dados não estabelecida.");
-                return;
-            }
-            emprestimoDAO.devolverLivro(livroEncontrado, usuarioEncontrado, livroDAO);
-            // livroDAO.atualizarStatusLivro(livroEncontrado.getIdLivro(), "Disponível");
-
-            listaLivrosDisponiveis.add(livroEncontrado);
-            listaLivrosEmprestados.remove(livroEncontrado);
-
         } catch (Exception e) {
             System.err.println("Erro ao devolver livro! " + e.getMessage());
-
         }
     }
 
@@ -330,46 +301,47 @@ public class Biblioteca {
 
     public void exibirHistorico() {
 
-        
+        try {
 
-        System.out.println("ID do usuário: ");
-        int idUsuario = scanner.nextInt();
-        scanner.nextLine();
+            usuarios = usuarioDAO.exibirUsuarios();
 
-        for (Usuario usuario: usuarios){
-            if (idUsuario != usuario.getIdUsuario()){
-                System.out.println("ID do usuário não encontrado! ");
+            System.out.println("ID do usuário: ");
+            int idUsuario = scanner.nextInt();
+            scanner.nextLine();
+
+            Usuario usuarioEncontrado = null;
+
+            for (Usuario usuario : usuarios) {
+                if (usuario.getIdUsuario() == idUsuario) {
+                    usuarioEncontrado = usuario;
+                    break;
+                }
+
             }
+
+            if (usuarioEncontrado == null) {
+                System.out.println("Usuário não encontrado");
+                return;
+            }
+
+            List<Emprestimo> emprestimos = emprestimoDAO.historicoEmprestimo(usuarioEncontrado);
+
+            if (emprestimos.isEmpty()) {
+                System.out.println("Nenhum empréstimo encontrado!\n");
+                return;
+            }
+
+            System.out.println("--- HISTÓRICO DE EMPRÉSTIMOS ---\nUsuário: " + usuarioEncontrado.getNome() + "\n");
+
+            for (Emprestimo emprestimo : emprestimos) {
+                System.out.println("Livro: " + emprestimo.getLivro().getTitulo());
+                System.out.println("Data de empréstimo: " + emprestimo.getDataEmprestimo());
+                System.out.println("Status: " + emprestimo.getStatus() + "\n");
+
+            }
+        } catch (Exception e) {
+            System.err.println("Erro ao exibir histórico de empréstimos!\n" + e.getMessage());
         }
 
-        
-
-        // try {
-            
-            
-
-        //     System.out.println("--- HISTÓRICO DE EMPRÉSTIMOS --- \n");
-        //     while (usuarioAtual.next()) {
-        //         historicoEncontrado = true;
-        //         System.out.println("Nome do usuário: " +
-        //                 usuarioAtual.getString("nome_usuario"));
-        //         System.out.println("Título do livro: " +
-        //                 usuarioAtual.getString("titulo_livro"));
-        //         System.out.println("Data de empréstimo: " +
-        //                 usuarioAtual.getString("data_emprestimo"));
-        //         System.out.println("Data de devolução: " +
-        //                 usuarioAtual.getString("data_devolucao"));
-        //         System.out.println("Status: " + usuarioAtual.getString("status") + "\n");
-
-        //     }
-
-        //     if (!historicoEncontrado) {
-        //         System.out.println("Nenhum histórico de empréstimos para este usuário!\n");
-        //     }
-        // } catch (Exception e) {
-        //     e.printStackTrace();
-        // }
-
     }
-
 }

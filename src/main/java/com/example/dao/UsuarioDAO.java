@@ -77,7 +77,7 @@ public class UsuarioDAO {
             System.err.println("Erro ao exibir usuários\n" + e.getMessage());
         }
 
-        return  usuarios;
+        return usuarios;
     }
 
    

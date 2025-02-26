@@ -24,9 +24,10 @@ public class EmprestimoDAO {
         }
         this.conexao = conexao;
 
-    }
+        
 
-    List<Emprestimo> emprestimos = new ArrayList<>();
+
+    }
     
 
     public void realizarEmprestimo(Livro livro, Usuario usuario, LocalDate dataEmprestimo) {
@@ -57,10 +58,12 @@ public class EmprestimoDAO {
 
                 stmt.executeUpdate();
 
-                conexao.commit();
-                System.out.println("Empréstimo realizado com sucesso!");
 
             }
+
+
+            conexao.commit();
+            System.out.println("Empréstimo realizado com sucesso!");
 
         } catch (SQLException e) {
             try {
@@ -76,33 +79,66 @@ public class EmprestimoDAO {
 
     }
 
-    public void devolverLivro(Livro livro, Usuario usuario, LivroDAO livroDAO) {
+    public Emprestimo procurarEmprestimo(int idUsuario, int idLivro){
+        String sql = "SELECT * FROM emprestimos WHERE id_livro = ? AND id_usuario = ? ";
+
+        try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
+            
+            stmt.setInt(1, idLivro);
+            stmt.setInt(2, idUsuario);
+
+            ResultSet resultado = stmt.executeQuery();
+
+            if(resultado.next()){
+                Usuario usuario = new Usuario(resultado.getInt("id_usuario"), resultado.getString("nome_usuario"));
+                Livro livro = new Livro(resultado.getInt("id_livro"), resultado.getString("titulo_livro"));
+                LocalDate dataEmprestimo = resultado.getDate("data_emprestimo").toLocalDate();
+                String status = resultado.getString("status");
+
+
+                return new Emprestimo(usuario, livro, dataEmprestimo, status);
+
+            }
+
+            return null;
+
+            
+        } 
+        catch (Exception e) {
+            System.err.println("Erro ao buscar empréstimo!\n" + e.getMessage());
+            return null;
+        }
+    
+    }
+
+    public void devolverLivro(Emprestimo emprestimo) {
 
         try {
 
-            int idLivro = livro.getIdLivro();
-            int idUsuario = usuario.getIdUsuario();
+            int idLivro = emprestimo.getLivro().getIdLivro();
+            int idUsuario = emprestimo.getUsuario().getIdUsuario();
 
-            if (!"Emprestado".equalsIgnoreCase(livro.getStatus())) {
+            if (!"Emprestado".equalsIgnoreCase(emprestimo.getStatus())) {
                 System.out.println("Livro não encontrado!");
                 return;
             }
 
             conexao.setAutoCommit(false);
 
-            String sql = "UPDATE emprestimos SET status = ? WHERE id_livro = ? AND id_usuario = ?";
+            String sql = "UPDATE emprestimos SET status = ?, data_devolucao = ? WHERE id_livro = ? AND id_usuario = ?";
 
             try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
 
                 stmt.setString(1, "Devolvido");
-                stmt.setInt(2, idLivro);
-                stmt.setInt(3, idUsuario);
+                stmt.setDate(2, java.sql.Date.valueOf(LocalDate.now()));
+                stmt.setInt(3, idLivro);
+                stmt.setInt(4, idUsuario);
 
                 stmt.executeUpdate();
 
             }
 
-            livroDAO.atualizarStatusLivro(idLivro, "Disponível");
+            
             conexao.commit();
 
         } catch (SQLException e) {
@@ -122,7 +158,7 @@ public class EmprestimoDAO {
 
     public List<Emprestimo> historicoEmprestimo(Usuario usuario) {
 
-        List<Emprestimo> historicoEmprestimo = new ArrayList<>();
+        List<Emprestimo> emprestimos = new ArrayList<>();
 
         int idUsuario = usuario.getIdUsuario();
         
@@ -135,36 +171,20 @@ public class EmprestimoDAO {
             ResultSet resultado = stmt.executeQuery();
 
             while(resultado.next()){
-
+                int idLivro = resultado.getInt("id_livro");
                 String tituloLivro = resultado.getString("titulo_livro");
-                String autorLivro = resultado.getString("autor_livro");
-                String genero = resultado.getString("genero");
-                String editora = resultado.getString("editora");
-                int anoPublicacao = resultado.getInt("ano_publicacao");
-                String isbn = resultado.getString("isbn");
                 String status = resultado.getString("status");
                 Date dataEmprestimo = resultado.getDate("data_emprestimo");
 
 
                 LocalDate dateEmprestimo = dataEmprestimo.toLocalDate(); 
-                Livro livro = new Livro(tituloLivro, autorLivro, genero, editora, anoPublicacao, isbn, status);
-
-                Emprestimo emprestimo = new Emprestimo(usuario, livro, dateEmprestimo);
+                Livro livro = new Livro(idLivro, tituloLivro);
+                
+                Emprestimo emprestimo = new Emprestimo(usuario, livro, dateEmprestimo, status);
 
                 emprestimos.add(emprestimo);
 
-                
-
-
-
             }
-
-            // stmt.setDate(3, java.sql.Date.valueOf(LocalDate.now()));
-            
-            // Emprestimo emprestimo = new Emprestimo(usuario);
-            // emprestimos.add(emprestimo);
-
-            // return emprestimos;
 
         } catch (SQLException e) {
             System.err.println("Erro ao conectar com o banco de dados " + e.getMessage());
@@ -176,33 +196,3 @@ public class EmprestimoDAO {
 
 }
 
-// public List<Emprestimo> historicoEmprestimo(Usuario usuario) {
-
-// List<Emprestimo> listaHistoricoEmprestimos = new ArrayList<>();
-
-// int idUsuario = usuario.getIdUsuario();
-
-// String sql = "SELECT * FROM emprestimos WHERE id_usuario = ?";
-
-// try {
-
-// PreparedStatement stmt = conexao.prepareStatement(sql);
-// stmt.setInt(1, idUsuario);
-
-// ResultSet resultado = stmt.executeQuery();
-
-// while (resultado.next()){
-// String nomeUsuario = resultado.getString("nome_usuario");
-// String tituloLivro = resultado.getString("titulo_livro");
-// Date dataEmprestimo = resultado.getDate("data_emprestimo");
-// Date dataDevolucao = resultado.getDate("data_devolucao");
-// String status = resultado.getString("status");
-
-// }
-// return listaHistoricoEmprestimos;
-
-// } catch (Exception e) {
-// System.err.println("Erro ao listar livros " + e.getMessage());
-// }
-
-// }

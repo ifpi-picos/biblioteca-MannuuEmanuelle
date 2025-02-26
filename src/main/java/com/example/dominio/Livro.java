@@ -32,6 +32,13 @@ public class Livro {
         this.status = status;
     }
 
+    public Livro(int idLivro, String titulo) {
+        this.idLivro = idLivro;
+        this.titulo = titulo;
+    }
+
+
+
 
 
 

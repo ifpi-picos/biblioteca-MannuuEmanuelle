@@ -7,18 +7,22 @@ public class Emprestimo {
     private Usuario usuario;
     private Livro livro;
     private LocalDate dataEmprestimo;
+    private String status;
     
     
 
-    public Emprestimo(Usuario usuario,  Livro livro, LocalDate dataEmprestimo) {
+    public Emprestimo(Usuario usuario,  Livro livro, LocalDate dataEmprestimo, String status) {
         this.usuario = usuario;
         this.livro = livro;
         this.dataEmprestimo = dataEmprestimo;
-        
+        this.status = status;
 
         
 
     }
+
+
+    public Emprestimo(){};
 
     
 
@@ -48,6 +52,18 @@ public class Emprestimo {
 
     public void setUsuario(Usuario usuario) {
         this.usuario = usuario;
+    }
+
+
+
+    public String getStatus() {
+        return status;
+    }
+
+
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
 

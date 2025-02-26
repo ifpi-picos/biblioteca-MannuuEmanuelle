@@ -60,20 +60,34 @@ public class LivroDAO {
 
     public void atualizarStatusLivro(int id, String status) {
 
-        System.out.println("Testando...");
+        // System.out.println("Testando...");
+
+        try {
+
+            conexao.setAutoCommit(false);
+       
         
-        String sql = "UPDATE livros SET status = ? WHERE id = ? ";
+            String sql = "UPDATE livros SET status = ? WHERE id = ? ";
 
-        try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
-            stmt.setString(1, status);
-            stmt.setInt(2, id);
+            try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
+                stmt.setString(1, status);
+                stmt.setInt(2, id);
 
-            stmt.executeUpdate();
+                stmt.executeUpdate();
 
-        } catch (SQLException e) {
-            System.err.println("Erro ao conectar com banco de dados");
+
+
+            } catch (SQLException e) {
+                System.err.println("Erro ao conectar com banco de dados");
 
         }
+
+
+        conexao.commit();
+
+    } catch (SQLException e) {
+        System.err.println("Erro ao atualizar status do livro\n" + e.getMessage());
+    }
 
     }
 
@@ -178,21 +192,4 @@ public class LivroDAO {
         
 
     }
-
-    // public String buscandoStatusLivro(int id) {
-    //     String sql = "SELECT status FROM livros WHERE id = ?";
-
-    //     try (PreparedStatement stmt = conexao.prepareStatement(sql)) {
-    //         stmt.setInt(1, id);
-    //         try (ResultSet resultado = stmt.executeQuery()) {
-    //             if (resultado.next()) {
-    //                 statusEncontrado = resultado.getString("status");
-    //             }
-    //         }
-
-    //         return statusEncontrado;
-
-    //     }
-    // }
-
 }
